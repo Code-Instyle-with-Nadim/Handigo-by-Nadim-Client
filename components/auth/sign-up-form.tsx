@@ -29,7 +29,7 @@ type FieldErrors = {
   name?: string
   email?: string
   password?: string
-  image?:string
+  image?: string
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -73,6 +73,26 @@ function getPasswordError(value: string) {
   }
 
   return ""
+}
+
+function getImageError(value: string) {
+  const trimmed = value.trim()
+
+  if (!trimmed) {
+    return ""
+  }
+
+  try {
+    const url = new URL(trimmed)
+
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return ""
+    }
+  } catch {
+    // Fall through to the shared error message.
+  }
+
+  return "Enter a valid image URL starting with http:// or https://."
 }
 
 export default function SignUpForm({
@@ -120,6 +140,12 @@ export default function SignUpForm({
       nextErrors.password = passwordError
     }
 
+    const imageError = getImageError(image)
+
+    if (imageError) {
+      nextErrors.image = imageError
+    }
+
     setErrors(nextErrors)
 
     return Object.keys(nextErrors).length === 0
@@ -148,6 +174,14 @@ export default function SignUpForm({
       return
     }
 
+    if (field === "image") {
+      setErrors((current) => ({
+        ...current,
+        image: getImageError(image) || undefined,
+      }))
+      return
+    }
+
     setErrors((current) => ({
       ...current,
       password: getPasswordError(password) || undefined,
@@ -169,6 +203,7 @@ export default function SignUpForm({
         name: name.trim(),
         email: email.trim(),
         password,
+        image: image.trim() || undefined,
         role,
         phone: phone.trim() || undefined,
         area: area.trim() || undefined,
