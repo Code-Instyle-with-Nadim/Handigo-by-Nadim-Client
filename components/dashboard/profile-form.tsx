@@ -3,18 +3,21 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import {
-  Image as ImageIcon,
   Loader2,
   Mail,
   MapPin,
   Phone,
+  ShieldCheck,
   UserRound,
 } from "lucide-react"
 import { toast } from "sonner"
 
 import { AuthInput } from "@/components/auth/auth-field"
+import { ImageUpload } from "@/components/dashboard/image-upload"
 import { RoleBadge } from "@/components/site/role-badge"
 import { authClient } from "@/lib/auth-client"
+import { getRoleMeta } from "@/lib/roles"
+import { notifySessionUpdated } from "@/lib/session-events"
 import { cn } from "@/lib/utils"
 
 type ProfileUser = {
@@ -67,6 +70,7 @@ export function ProfileForm({ user }: { user: ProfileUser }) {
       }
 
       toast.success("Profile updated successfully.")
+      notifySessionUpdated()
       router.refresh()
     } catch {
       toast.error("Unable to update your profile. Please try again.")
@@ -98,6 +102,18 @@ export function ProfileForm({ user }: { user: ProfileUser }) {
           noValidate
           className="mt-7 rounded-3xl border border-border/70 bg-card/85 p-5 shadow-[0_24px_70px_-48px_rgba(4,18,38,0.45)] sm:p-7"
         >
+          <div className="mb-5">
+            <ImageUpload
+              id="profile-image"
+              label="Profile photo"
+              value={image}
+              disabled={saving}
+              shape="circle"
+              onChange={setImage}
+              hint="Upload a clear photo of yourself. It appears in the navbar and dashboard straight away."
+            />
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <AuthInput
               id="profile-name"
@@ -131,33 +147,27 @@ export function ProfileForm({ user }: { user: ProfileUser }) {
               onChange={(event) => setPhone(event.target.value)}
             />
 
-            <div className="sm:col-span-2">
-              <AuthInput
-                id="profile-image"
-                name="image"
-                type="url"
-                label="Profile photo URL"
-                placeholder="https://i.ibb.co/..."
-                value={image}
-                disabled={saving}
-                icon={<ImageIcon className="size-4" />}
-                hint="Paste a direct image URL (for example, an ImgBB link)."
-                onChange={(event) => setImage(event.target.value)}
-              />
-            </div>
+            <AuthInput
+              id="profile-email"
+              name="email"
+              type="email"
+              label="Email address"
+              value={user.email}
+              disabled
+              icon={<Mail className="size-4" />}
+              hint="Your sign-in email can't be changed here."
+            />
 
-            <div className="sm:col-span-2">
-              <AuthInput
-                id="profile-email"
-                name="email"
-                type="email"
-                label="Email address"
-                value={user.email}
-                disabled
-                icon={<Mail className="size-4" />}
-                hint="Your sign-in email can't be changed here."
-              />
-            </div>
+            <AuthInput
+              id="profile-role"
+              name="role"
+              type="text"
+              label="Account role"
+              value={getRoleMeta(user.role).label}
+              disabled
+              icon={<ShieldCheck className="size-4" />}
+              hint="Roles are managed by an admin."
+            />
 
             <div className="sm:col-span-2">
               <AuthInput

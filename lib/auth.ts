@@ -1,32 +1,12 @@
 import { betterAuth } from "better-auth"
 import { APIError, createAuthMiddleware } from "better-auth/api"
 import { mongodbAdapter } from "@better-auth/mongo-adapter"
-import { MongoClient } from "mongodb"
 
-const mongoUri = process.env.MONGODB_CONNECT_URI ?? "mongodb://localhost:27017/Handigo"
-const mongoDatabase = process.env.MONGODB_DB ?? "Handigo"
-
-/**
- * Keep a single MongoClient across hot reloads in development. Creating a new
- * client on every module evaluation quickly exhausts the connection pool.
- */
-const globalForMongo = globalThis as typeof globalThis & {
-  handigoMongoClient?: MongoClient
-}
-
-const client = globalForMongo.handigoMongoClient ?? new MongoClient(mongoUri)
-const db = client.db(mongoDatabase)
-
-if (process.env.NODE_ENV !== "production") {
-  globalForMongo.handigoMongoClient = client
-}
-
-
-
+import { db, mongoClient } from "@/lib/mongodb"
 
 export const auth = betterAuth({
   database: mongodbAdapter(db, {
-    client,
+    client: mongoClient,
     // Transactions require a replica set (Atlas, or a local replica set).
     // A plain local `mongod` standalone doesn't support them, so this stays
     // off by default and can be enabled with MONGODB_TRANSACTIONS=true.
