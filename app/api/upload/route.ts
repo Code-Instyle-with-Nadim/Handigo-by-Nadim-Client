@@ -24,13 +24,13 @@ export async function POST(request: Request) {
     )
   }
 
-  const apiKey = process.env.IMGBB_API_KEY?.trim()
+  const apiKey = process.env.IMAGE_BB_API_KEY?.trim()
 
   if (!apiKey) {
     return Response.json(
       {
         error:
-          "Image upload is not configured. Add IMGBB_API_KEY to your environment.",
+          "Image upload is not configured. Add IMAGE_BB_API_KEY to your environment.",
       },
       { status: 500 }
     )

@@ -7,10 +7,9 @@ import { ArrowRight, Loader2, LockKeyhole, Mail } from "lucide-react"
 import { toast } from "sonner"
 
 import { AuthInput, PasswordToggle } from "@/components/auth/auth-field"
-import { GoogleButton } from "@/components/auth/google-button"
 import { authClient } from "@/lib/auth-client"
-import { getRoleMeta, normalizeRole } from "@/lib/roles"
 import { getSafeRedirectPath } from "@/lib/redirects"
+import { getRoleMeta, normalizeRole } from "@/lib/roles"
 
 type FieldErrors = {
   email?: string
@@ -19,14 +18,17 @@ type FieldErrors = {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-export function SignInForm({ redirectTo }: { redirectTo?: string | null }) {
+export function SignInForm({
+  redirectTo,
+}: {
+  redirectTo?: string | null
+}) {
   const router = useRouter()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [googleLoading, setGoogleLoading] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [errors, setErrors] = useState<FieldErrors>({})
 
@@ -116,49 +118,33 @@ export function SignInForm({ redirectTo }: { redirectTo?: string | null }) {
     }
   }
 
-  async function handleGoogleSignIn() {
-    setFormError(null)
-    setGoogleLoading(true)
-
-    try {
-      const { error } = await authClient.signIn.social({
-        provider: "google",
-        callbackURL: safeRedirect ?? "/dashboard",
-        errorCallbackURL: "/sign-in",
-      })
-
-      if (error) {
-        toast.error(error.message || "Google sign-in failed. Please try again.")
-        setGoogleLoading(false)
-      }
-    } catch {
-      toast.error("Google sign-in failed. Please try again.")
-      setGoogleLoading(false)
-    }
-  }
-
   const signUpHref = safeRedirect
     ? `/sign-up?redirect=${encodeURIComponent(safeRedirect)}`
     : "/sign-up"
 
   return (
     <div className="mt-7">
-      <GoogleButton
-        onClick={handleGoogleSignIn}
-        loading={googleLoading}
-        disabled={loading}
-        label="Sign in with Google"
-      />
-
-      <div className="my-5 flex items-center gap-3">
-        <div className="h-px flex-1 bg-border" />
-        <span className="text-[9.5px] font-semibold tracking-[0.14em] text-muted-foreground/70 uppercase">
-          or use your email
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <h2 className="font-display text-[1.15rem] font-semibold tracking-[-0.03em]">
+            Sign in to your account
+          </h2>
+          <p className="mt-1 text-[11.5px] leading-relaxed text-muted-foreground">
+            Pick up right where you left off — bookings, pros and warranties in
+            one place.
+          </p>
+        </div>
+        <span className="mb-0.5 hidden shrink-0 rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[9.5px] font-semibold tracking-[0.08em] text-muted-foreground uppercase sm:inline-flex">
+          Secure
         </span>
-        <div className="h-px flex-1 bg-border" />
       </div>
 
-      <form onSubmit={handleSubmit} noValidate className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        aria-busy={loading}
+        className="mt-5 space-y-4"
+      >
         {formError ? (
           <p
             role="alert"
@@ -176,6 +162,7 @@ export function SignInForm({ redirectTo }: { redirectTo?: string | null }) {
           autoComplete="email"
           placeholder="you@example.com"
           value={email}
+          required
           disabled={loading}
           icon={<Mail className="size-4" />}
           error={errors.email}
@@ -195,6 +182,7 @@ export function SignInForm({ redirectTo }: { redirectTo?: string | null }) {
           autoComplete="current-password"
           placeholder="Your password"
           value={password}
+          required
           disabled={loading}
           icon={<LockKeyhole className="size-4" />}
           error={errors.password}
@@ -224,7 +212,7 @@ export function SignInForm({ redirectTo }: { redirectTo?: string | null }) {
 
         <button
           type="submit"
-          disabled={loading || googleLoading}
+          disabled={loading}
           className="group inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#2f6df6_0%,#1e56e0_56%,#173fb8_100%)] text-[13px] font-semibold text-white shadow-[0_14px_28px_-14px_rgba(37,99,235,0.9)] transition-all outline-none hover:brightness-110 focus-visible:ring-3 focus-visible:ring-primary/35 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-70"
         >
           {loading ? (

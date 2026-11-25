@@ -20,7 +20,7 @@ import { ThemeToggle } from "@/components/site/theme-toggle"
 import { authClient } from "@/lib/auth-client"
 import { NAV_LINKS } from "@/lib/site-data"
 import { getRoleMeta } from "@/lib/roles"
-import { SESSION_UPDATED_EVENT } from "@/lib/session-events"
+
 import { cn } from "@/lib/utils"
 
 type SessionUser = {
@@ -109,17 +109,7 @@ export function SiteHeader() {
   const user = (session?.user ?? null) as SessionUser | null
   const roleMeta = getRoleMeta(user?.role)
 
-  useEffect(() => {
-    function handleSessionUpdated() {
-      void refetch()
-    }
 
-    window.addEventListener(SESSION_UPDATED_EVENT, handleSessionUpdated)
-
-    return () => {
-      window.removeEventListener(SESSION_UPDATED_EVENT, handleSessionUpdated)
-    }
-  }, [refetch])
 
   const [mobileOpen, setMobileOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)

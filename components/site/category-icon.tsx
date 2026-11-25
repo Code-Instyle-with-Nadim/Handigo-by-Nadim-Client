@@ -1,7 +1,11 @@
 import {
   Droplets,
   Hammer,
+  Laptop,
+  Smartphone,
+  Snowflake,
   Sparkles,
+  Tv,
   WashingMachine,
   Wind,
   Wrench,
@@ -17,6 +21,10 @@ const ICONS = {
   "washing-machine": WashingMachine,
   hammer: Hammer,
   sparkles: Sparkles,
+  smartphone: Smartphone,
+  laptop: Laptop,
+  snowflake: Snowflake,
+  tv: Tv,
 } as const
 
 export function CategoryIcon({

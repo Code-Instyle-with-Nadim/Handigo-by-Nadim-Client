@@ -4,24 +4,30 @@ import { mongodbAdapter } from "@better-auth/mongo-adapter"
 
 import { db, mongoClient } from "@/lib/mongodb"
 
+const PASSWORD_REQUIREMENTS =
+  "Password must be at least 6 characters and include at least one uppercase and one lowercase letter."
+
+const baseURL =
+  process.env.BETTER_AUTH_URL ??
+  process.env.NEXT_PUBLIC_BETTER_AUTH_URL ??
+  "http://localhost:3000"
+
 export const auth = betterAuth({
+  baseURL,
+  secret: process.env.BETTER_AUTH_SECRET,
   database: mongodbAdapter(db, {
     client: mongoClient,
     // Transactions require a replica set (Atlas, or a local replica set).
-    // A plain local `mongod` standalone doesn't support them, so this stays
-    // off by default and can be enabled with MONGODB_TRANSACTIONS=true.
+    // A standalone `mongod` does not support them, so this stays opt-in.
     transaction: process.env.MONGODB_TRANSACTIONS === "true",
   }),
 
-  baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-  secret: process.env.BETTER_AUTH_SECRET,
-
-    socialProviders: {
-        google: { 
-            clientId: process.env.GOOGLE_CLIENT_ID as string, 
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string, 
-        }, 
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
+  },
 
   emailAndPassword: {
     enabled: true,
@@ -35,8 +41,9 @@ export const auth = betterAuth({
         required: false,
         defaultValue: "customer",
         input: true,
-        // This runs on the server for sign-up. A client can never persist
-        // anything except the two roles the UI offers.
+        // Runs on the server for both sign-up and update-user. Anything other
+        // than the two self-service roles is stored as "customer", so a
+        // client can never grant itself the admin role.
         transform: {
           input: (value) =>
             value === "technician" ? "technician" : "customer",
@@ -64,13 +71,32 @@ export const auth = betterAuth({
     before: createAuthMiddleware(async (ctx) => {
       const body = ctx.body as Record<string, unknown> | undefined
 
+      // Mirror the client-side password rules on the server, so the API can
+      // only ever store passwords that satisfy the same requirements.
+      if (
+        ctx.path === "/sign-up/email" &&
+        typeof body?.password === "string"
+      ) {
+        const password = body.password
+
+        if (
+          password.length < 6 ||
+          !/[A-Z]/.test(password) ||
+          !/[a-z]/.test(password)
+        ) {
+          throw new APIError("BAD_REQUEST", {
+            code: "INVALID_PASSWORD",
+            message: PASSWORD_REQUIREMENTS,
+          })
+        }
+      }
+
       // Roles are chosen once at sign-up. Admins are promoted directly in the
       // database, never through a client-side profile update.
       if (
         ctx.path === "/update-user" &&
         body &&
-        typeof body === "object" &&
-        "role" in body
+        Object.prototype.hasOwnProperty.call(body, "role")
       ) {
         throw new APIError("BAD_REQUEST", {
           code: "ROLE_NOT_EDITABLE",
