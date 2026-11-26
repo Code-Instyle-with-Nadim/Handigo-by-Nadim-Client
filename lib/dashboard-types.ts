@@ -12,7 +12,7 @@ export type PaymentStatus = "unpaid" | "paid"
 
 export type ApprovalStatus = "pending" | "approved" | "rejected"
 
-export type ServiceMode = "home-visit" | "shop-drop-off"
+export type ServiceMode = "Home Visit" | "Shop Drop-off"
 
 export type ServiceRecord = {
   id: string
@@ -20,7 +20,7 @@ export type ServiceRecord = {
   category: string
   description: string
   basePrice: number
-  duration: string
+  estimatedDuration: string
   serviceMode: ServiceMode
   serviceArea: string
   image: string
