@@ -16,6 +16,7 @@ import {
   Wrench,
 } from "lucide-react"
 import { toast } from "sonner"
+import {Icon} from "@iconify/react";
 
 import { AuthInput, PasswordToggle } from "@/components/auth/auth-field"
 import { authClient } from "@/lib/auth-client"
@@ -202,6 +203,14 @@ export default function SignUpForm({
   const signInHref = safeRedirect
     ? `/sign-in?redirect=${encodeURIComponent(safeRedirect)}`
     : "/sign-in"
+
+
+    const GoogleSignIn = async () => {
+  const data = await authClient.signIn.social({
+    provider: "google",
+  });
+};
+ 
 
   return (
     <div className="mt-7">
@@ -411,6 +420,12 @@ export default function SignUpForm({
             </>
           )}
         </button>
+          <button
+          onClick={GoogleSignIn}
+          className="group inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#2f6df6_0%,#1e56e0_56%,#173fb8_100%)] text-[13px] font-semibold text-white shadow-[0_14px_28px_-14px_rgba(37,99,235,0.9)] transition-all outline-none hover:brightness-110 focus-visible:ring-3 focus-visible:ring-primary/35 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-70">
+        <Icon icon="devicon:google" />
+        Sign in with Google
+      </button>
 
         <p className="pt-1 text-center text-[11.5px] text-muted-foreground">
           Already have an account?{" "}
